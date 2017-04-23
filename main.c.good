@@ -1,0 +1,55 @@
+#include<stdio.h>
+#include<wiringPiI2C.h>
+#include "test.h"
+#include<stdint.h>
+
+int address = 0x77;
+
+int main()
+{
+   if(!wiringPiI2CSetup(address)){
+      puts("fail to init i2c!");
+
+   }
+
+   int fd = wiringPiI2CSetup(address);
+   printf("Chip Id %x\n", wiringPiI2CReadReg8(fd,0xD0));
+
+   printf("Status %x\n", wiringPiI2CReadReg8(fd,0xF3));
+   wiringPiI2CWriteReg8(fd, 0xF4, 0x3F);
+   printf("Status %x\n", wiringPiI2CReadReg8(fd,0xF3));
+
+
+   int32_t adcT = wiringPiI2CReadReg8(fd, 0xFA);
+
+   adcT <<= 8;
+   adcT |= wiringPiI2CReadReg8(fd, 0xFB);
+   adcT <<= 8;
+   adcT |= wiringPiI2CReadReg8(fd, 0xFC);
+
+
+   unsigned short T_cal_1 = wiringPiI2CReadReg16(fd, 0x88);
+   short T_cal_2 = wiringPiI2CReadReg16(fd, 0x8A);
+   short T_cal_3 = wiringPiI2CReadReg16(fd, 0x8C);
+
+   printf("T_cal_1 %d\n", T_cal_1);
+   printf("T_cal_2 %d\n", T_cal_2);
+   printf("T_cal_3 %d\n", T_cal_3);
+   printf("adcT %d\n", adcT);
+   adcT >>= 4;
+   uint32_t var1 = ((((adcT >> 3) - ((int32_t)T_cal_1 << 1))) * ((int32_t)T_cal_2)) >> 11;
+   uint32_t var2 = (((((adcT >> 4) - ((int32_t)T_cal_1)) * ((adcT >> 4) - ((int32_t)T_cal_1))) >> 12) * ((int32_t)T_cal_3)) >> 14;
+
+   int32_t tfine = var1 + var2;
+   float T = ((tfine * 5) + 128) >> 8;
+   T /= 100;
+
+   printf("var1 %d\n", var1);
+   printf("var2 %d\n", var2);
+   printf("tfine %d\n", tfine);
+   printf("Temperature %f\n", T);
+   printf("adcT %d\n", adcT);
+   puts("Hello\n");
+   asdf();
+   return 0;
+}

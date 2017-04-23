@@ -1,0 +1,110 @@
+#include<stdio.h>
+#include<wiringPiI2C.h>
+#include "test.h"
+#include<stdint.h>
+#include <math.h>
+
+int address = 0x77;
+
+int main()
+{
+   if(!wiringPiI2CSetup(address)){
+      puts("fail to init i2c!");
+
+   }
+
+   int fd = wiringPiI2CSetup(address);
+   printf("Chip Id %x\n", wiringPiI2CReadReg8(fd,0xD0));
+
+   printf("Status %x\n", wiringPiI2CReadReg8(fd,0xF3));
+   wiringPiI2CWriteReg8(fd, 0xF4, 0x3F);
+   printf("Status %x\n", wiringPiI2CReadReg8(fd,0xF3));
+
+
+   int32_t adcT = wiringPiI2CReadReg8(fd, 0xFA);
+   adcT <<= 8;
+   adcT |= wiringPiI2CReadReg8(fd, 0xFB);
+   adcT <<= 8;
+   adcT |= wiringPiI2CReadReg8(fd, 0xFC);
+
+
+
+
+   unsigned short T_cal_1 = wiringPiI2CReadReg16(fd, 0x88);
+   short T_cal_2 = wiringPiI2CReadReg16(fd, 0x8A);
+   short T_cal_3 = wiringPiI2CReadReg16(fd, 0x8C);
+
+   unsigned short P_cal_1 = wiringPiI2CReadReg16(fd, 0x8E);
+   short P_cal_2 = wiringPiI2CReadReg16(fd, 0x90);
+   short P_cal_3 = wiringPiI2CReadReg16(fd, 0x92);
+   short P_cal_4 = wiringPiI2CReadReg16(fd, 0x94);
+   short P_cal_5 = wiringPiI2CReadReg16(fd, 0x96);
+   short P_cal_6 = wiringPiI2CReadReg16(fd, 0x98);
+   short P_cal_7 = wiringPiI2CReadReg16(fd, 0x9A);
+   short P_cal_8 = wiringPiI2CReadReg16(fd, 0x9C);
+   short P_cal_9 = wiringPiI2CReadReg16(fd, 0x9E);
+
+   int32_t adcP = wiringPiI2CReadReg8(fd, 0xF7);
+   adcP <<= 8;
+   adcP |= wiringPiI2CReadReg8(fd, 0xF8);
+   adcP <<= 8;
+   adcP |= wiringPiI2CReadReg8(fd, 0xF9);
+   adcP >>= 4;
+
+
+   printf("T_cal_1 %d\n", T_cal_1);
+   printf("T_cal_2 %d\n", T_cal_2);
+   printf("T_cal_3 %d\n", T_cal_3);
+   printf("adcT %d\n", adcT);
+   adcT >>= 4;
+   // Temperature
+   uint32_t var1 = ((((adcT >> 3) - ((int32_t)T_cal_1 << 1))) * ((int32_t)T_cal_2)) >> 11;
+   uint32_t var2 = (((((adcT >> 4) - ((int32_t)T_cal_1)) * ((adcT >> 4) - ((int32_t)T_cal_1))) >> 12) * ((int32_t)T_cal_3)) >> 14;
+
+   int32_t tfine = var1 + var2;
+   float T = ((tfine * 5) + 128) >> 8;
+   T /= 100;
+
+   // pressure
+
+   int64_t p, Pvar1, Pvar2;
+   Pvar1 = ((int64_t)tfine / 2) - 64000;
+
+   Pvar2 = (Pvar1 * Pvar1 * (int64_t)P_cal_6)>>15;
+   Pvar2 = Pvar2 + ((Pvar1 * (int64_t)P_cal_5) * 2);
+   Pvar2 = (Pvar2/4) + (((int64_t)P_cal_4) << 16);
+   Pvar1 = (((((int64_t)P_cal_3) * Pvar1) *  Pvar1) >> 19) + ((((int64_t)P_cal_2) * Pvar1)) >> 19;
+   Pvar1 = ((Pvar1 >>15) + 1) * ((int64_t)P_cal_1);
+
+
+   if(Pvar1 == 0){
+   return 0;
+   }
+
+   p = 1048576 - adcP;
+   p = ((p - (Pvar2 >> 12)) * 6250) / Pvar1;
+   Pvar1 = (((int64_t)P_cal_9) * p *p) >> 31;
+   Pvar2 = (((int64_t)P_cal_8) * p) >> 15;
+   p = p + ((Pvar1 + Pvar2 + ((int64_t)P_cal_7)) / 16);
+   float finalP = (p);
+
+
+   float altitude;
+   float pressure = finalP;
+   pressure /= 100;
+   float seaLevelPa = 1017.77;
+
+   altitude = 44330 * (1.0 - pow(pressure / seaLevelPa, 0.1903));
+
+
+   printf("adcP %d\n", adcP);
+   printf("var1 %d\n", var1);
+   printf("var2 %d\n", var2);
+   printf("tfine %d\n", tfine);
+   printf("Temperature %f\n", T);
+   printf("Pressure %f\n", finalP);
+   printf("adcT %d\n", adcT);
+   printf("altitude %f m", altitude);
+   puts("Hello\n");
+   return 0;
+}
