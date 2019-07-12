@@ -7,22 +7,31 @@
 #include <ncurses.h> //terminal output
 #include <panel.h>
 #include "Display.h"
+#include "SerialHandler.h"
 
 
+using namespace sh;
 using namespace std;
+
 
 int number = 3;
 
 int main(int argc,char *argv[])
 {
+
+        //monitor initialization
         int counter = 0;
         int i;
         char text[10];
-
         initDisplay(number);
         addMonitor("Data Stream", 1);
         addMonitor("Menu", 3);
         addMonitor("Debug", 2);
+
+        //Serial initialization
+        SerialHandler sh;
+        sh.serialBegin();
+
         while (displayActive()) {
 
                 sprintf(text, "%d", i);

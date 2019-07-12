@@ -1,6 +1,8 @@
 #ifndef Display_h_
 #define Display_h_
 
+
+
 typedef struct {
         char line[64];
 }line_t;
@@ -16,7 +18,6 @@ typedef struct {
         int inputShift;
         PANEL *panel;
 }PANEL_DATA;
-
 
 
 void initDisplay(int number);
@@ -43,6 +44,7 @@ void endDisplay();
 void appendString(char *original, char *add, int length);
 void addLine(int monitorNumber, char *line);
 char *readInput(int monitorNumber);
+
 
 
 #endif
