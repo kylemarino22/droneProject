@@ -56,8 +56,8 @@ void changeSpeed(int m1, int m2, int m3, int m4){
 }
 
 void motorUpdate(int m1, int m2, int m3, int m4) {
-        motorArray[0].motor.writeMicroseconds(m1+motorArray[0].calibration);
-        motorArray[1].motor.writeMicroseconds(m2+motorArray[1].calibration);
-        motorArray[2].motor.writeMicroseconds(m3+motorArray[2].calibration);
-        motorArray[3].motor.writeMicroseconds(m4+motorArray[3].calibration);
+        motorArray[0].motor.writeMicroseconds(m1);
+        motorArray[1].motor.writeMicroseconds(m2);
+        motorArray[2].motor.writeMicroseconds(m3);
+        motorArray[3].motor.writeMicroseconds(m4);
 }

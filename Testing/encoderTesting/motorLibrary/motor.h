@@ -5,8 +5,6 @@
 #include "Arduino.h"
 #include <Servo.h>
 
-
-
 typedef struct motor_t {
         Servo motor;
         float calibration;

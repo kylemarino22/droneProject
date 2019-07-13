@@ -4,28 +4,35 @@
 
 #include "Arduino.h"
 
+#define BUFFER_LENGTH 100
+#define DATA_PADDING 40
+
+
 class OpticalEncoder {
 private:
-    bool pin1_Switch = false;
-    bool pin1_ON = false;
-    long delta_t = 0;
-    long prev_time = micros();
-    double circularBuffer[10];
-    int bufferLength = 5;
-    int pos = 0;
-    int maxValue;
-    int minValue;
-    int maxValuePos;
-    int minValuePos;
+//    bool pin1_Switch = false;
+//    bool pin1_ON = false;
+//    long delta_t = 0;
+    bool doProcessBuffer = false;
+    long init_time = micros();
+    long microsBuffer[BUFFER_LENGTH + 1];
+    long times[BUFFER_LENGTH];
+
+//    int bufferLength = 10;
+    int microsBufferPos = 0;
+//    int maxValue;
+//    int minValue;
+//    int maxValuePos;
+//    int minValuePos;
 
 public:
     float speed;
     OpticalEncoder();
-    OpticalEncoder(int pin);
-    void read();
+    setup (uint8_t irq_pin, void (*ISR_callback)(void), int value);
+    void read (void);
+    bool processBuffer();
 
 };
-
 
 
 
