@@ -1,1 +1,13 @@
 # droneProject
+## Summary
+Starting in 2016, I built my own self-stabilizing quadcopter entirely from scratch. It is powered by an Arduino Uno, and communicates with a Raspberry Pi to recieve flight commands. The drone self calibrates each moter via photoelectric encoders to ensure accurate thrust responses. It also uses a kalman filter to clean the IMU data to improve sensor reliability. While this is still an ongoing project, these features create an ultra-smooth final flight. I developed a flask server to send flight commands from a ground controller to the Raspberry PI, and a UART protocol layer to enable cross chip communication between the Arduino and the PI. In addition to the RPI and main Arduino flight controller, there is a second Arduino that is responsible for calibrating and controlling motors based on those calibrations. A second UART protocol was developed for this chip to chip communication as well.
+
+## Challenges Faced
+Throughout this project, countless challenges were faced. <br>
+* *CPU runtime* The first challenge was with the processer speed of the Raspberry PI. Initially, I wanted the drone to be solely controlled by the PI, but I soon realized that the PI would only dedicate around 30% of its time to running the flight controller. I subsequently made the switch to using an Arduino Uno. While running at a much slower speed, a microprocessor would dedicate all of its time to the one program.
+* *Vibrational interference with sensor data* Due to the high-vibration context of the quadcopter, the initial data out of the IMU was very inconsistent. Over months of experimentation, I found that balancing the propellers and motors, placing the electronics unit on anti-vibration mounts, using a Kalman filter to reduce accelerometer noise, and correcting the accelerometer integration drift with gyroscopic data were all necessary to acquire flight-usable data.
+* *Raspberry Pi to Arduino Communication* I developed several iterations of UART protocol layers to efficiently send and error correct and detect data being sent between the Arduino and Raspberry PI. The terminalSplitter project I created was used to debug this issue.
+* *Motor Speed Calibration* Due to the low cost ESCs (electronic speed controllers) that I purchased for this project, the thrust response per motor was inconsistent. I used cheap photoelectric encoders to determine the RPM per motor and save that to the EEPROM of a secondary Arduino. The primary flight controller would determine its PID output in terms of RPM and send that data over to the calibration Arduino. The calibration Arduino would interpolate between recorded RPM values and supply a respective PWM to the motor.
+
+## Images
+_To be added soon!_
